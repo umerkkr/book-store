@@ -1,0 +1,16 @@
+:root {
+  font-family: Inter, system-ui, sans-serif;
+  color: #f5f7fb;
+  background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+}
+body { margin: 0; min-height: 100vh; background: radial-gradient(circle at top, #243b55, #111827); color: #f5f7fb; }
+a, button { color: inherit; }
+.topbar { display: flex; justify-content: space-between; padding: 1rem 1.5rem; background: rgba(0,0,0,.2); backdrop-filter: blur(12px); }
+.brand { font-weight: 800; text-decoration: none; }
+.nav { display: flex; gap: 1rem; align-items: center; }
+.container { padding: 1.5rem; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+.card, .panel { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); border-radius: 18px; padding: 1rem; }
+.page-heading, .searchbar { display: flex; gap: .75rem; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+input, button { padding: .75rem 1rem; border-radius: 12px; border: none; }
+button { background: #f59e0b; color: #111827; font-weight: 700; cursor: pointer; }
