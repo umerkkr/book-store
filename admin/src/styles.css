@@ -70,6 +70,44 @@ body { margin: 0; min-height: 100vh; color: var(--text); background: linear-grad
   border: 1px solid var(--border);
 }
 
+.admin-book-cover {
+  width: 72px;
+  aspect-ratio: 3 / 4;
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.42);
+  border: 1px solid var(--border);
+  flex: 0 0 auto;
+}
+
+.cover-preview-wrap {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.cover-preview {
+  aspect-ratio: 3 / 4;
+  max-width: 220px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.cover-preview-empty {
+  min-height: 180px;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  padding: 1rem;
+  text-align: center;
+}
+
+.cover-preview-empty.small {
+  min-height: 120px;
+}
+
 .row {
   display: flex;
   gap: 0.75rem;

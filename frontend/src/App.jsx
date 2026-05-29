@@ -222,6 +222,13 @@ function BooksPage({ showToast }) {
         <section className="grid">
           {books.map((book) => (
             <article key={book.id} className="card book-card">
+              <div className="book-cover">
+                {book.coverUrl ? (
+                  <img src={book.coverUrl} alt={book.title} />
+                ) : (
+                  <div className="book-cover-fallback">No cover</div>
+                )}
+              </div>
               <div className="book-top">
                 <span className="category-tag">{book.category || 'General'}</span>
                 <strong className="price">${book.price.toFixed(2)}</strong>
@@ -273,6 +280,13 @@ function BookDetailPage({ showToast }) {
         <span className="pill">{book.category || 'General'}</span>
         <h1>{book.title}</h1>
         <p className="author">By {book.author}</p>
+        <div className="detail-cover">
+          {book.coverUrl ? (
+            <img src={book.coverUrl} alt={book.title} />
+          ) : (
+            <div className="book-cover-fallback large">No cover image</div>
+          )}
+        </div>
         <p className="description">{book.description}</p>
       </div>
       <div className="detail-sidebar">

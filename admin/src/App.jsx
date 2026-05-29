@@ -94,6 +94,16 @@ function BookForm({ onSave, initial = null, onCancel }) {
         <div className="field-group"><label>Stock</label><input placeholder="Available copies" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} /></div>
         <div className="field-group"><label>Cover URL</label><input placeholder="https://..." value={form.coverUrl} onChange={(e) => setForm({ ...form, coverUrl: e.target.value })} /></div>
       </div>
+      <div className="cover-preview-wrap">
+        <label>Cover preview</label>
+        <div className="cover-preview">
+          {form.coverUrl ? (
+            <img src={form.coverUrl} alt="Cover preview" />
+          ) : (
+            <div className="cover-preview-empty">Paste a cover image URL to preview it here</div>
+          )}
+        </div>
+      </div>
       <div className="field-group">
         <label>Description</label>
         <textarea placeholder="Write a short description for the storefront" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
@@ -175,6 +185,9 @@ function Dashboard({ onLogout }) {
           <div className="admin-list">
             {books.map((book) => (
               <article className="admin-item" key={book.id}>
+                <div className="admin-book-cover">
+                  {book.coverUrl ? <img src={book.coverUrl} alt={book.title} /> : <div className="cover-preview-empty small">No cover</div>}
+                </div>
                 <div className="book-info">
                   <span className="category-tag">{book.category || 'General'}</span>
                   <h3>{book.title}</h3>
