@@ -10,17 +10,13 @@ function Layout({ children }) {
   return (
     <div className="app-shell">
       <header className="topbar">
-        <Link to="/" className="brand">
-          BookNest
-        </Link>
+        <Link to="/" className="brand">BookNest</Link>
         <nav className="nav">
           <Link to="/">Books</Link>
           {auth.user && <Link to="/cart">Cart</Link>}
           {auth.user && <Link to="/orders">Orders</Link>}
           {auth.user?.role === 'admin' && (
-            <a href={adminUrl} target="_blank" rel="noreferrer">
-              Admin Books
-            </a>
+            <a href={adminUrl} target="_blank" rel="noreferrer">Admin Books</a>
           )}
           {auth.user ? <button onClick={auth.logout}>Logout</button> : <Link to="/login">Login</Link>}
           {!auth.user && <Link to="/signup">Sign up</Link>}
@@ -34,12 +30,6 @@ function Layout({ children }) {
 function Protected({ children }) {
   const auth = useAuth();
   if (!auth.loading && !auth.user) return <Navigate to="/login" replace />;
-  return children;
-}
-
-function AdminOnly({ children }) {
-  const auth = useAuth();
-  if (!auth.loading && auth.user?.role !== 'admin') return <Navigate to="/" replace />;
   return children;
 }
 
@@ -73,28 +63,18 @@ function BooksPage() {
           <span className="eyebrow">Curated reading, faster discovery</span>
           <h1>Find your next great book in a store that feels alive.</h1>
           <p>
-            Browse hand-picked titles, search by book name or author, and add favorites to cart in a clean
-            premium interface.
+            Browse hand-picked titles, search by book name or author, and add favorites to cart in a clean premium interface.
           </p>
           <div className="hero-actions">
-            <button onClick={() => document.getElementById('book-search')?.focus()}>Search books</button>
+            <button type="button" onClick={() => document.getElementById('book-search')?.focus()}>Search books</button>
             <Link to={auth.user ? '/cart' : '/signup'} className="ghost-button">
               {auth.user ? 'Go to cart' : 'Create account'}
             </Link>
           </div>
           <div className="hero-stats">
-            <div>
-              <strong>{books.length}</strong>
-              <span>books available</span>
-            </div>
-            <div>
-              <strong>COD</strong>
-              <span>cash on delivery</span>
-            </div>
-            <div>
-              <strong>Fast</strong>
-              <span>search and checkout</span>
-            </div>
+            <div><strong>{books.length}</strong><span>books available</span></div>
+            <div><strong>COD</strong><span>cash on delivery</span></div>
+            <div><strong>Fast</strong><span>search and checkout</span></div>
           </div>
         </div>
         <div className="hero-panel">
@@ -120,12 +100,7 @@ function BooksPage() {
             load(q, activeFilter === 'All' ? '' : activeFilter);
           }}
         >
-          <input
-            id="book-search"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search by book name or author"
-          />
+          <input id="book-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by book name or author" />
           <button type="submit">Search</button>
           <button
             type="button"
@@ -157,6 +132,14 @@ function BooksPage() {
         </div>
       </section>
 
+      <section className="section-head">
+        <div>
+          <span className="eyebrow">Featured catalog</span>
+          <h2>Browse books by title, author, or category</h2>
+        </div>
+        <p className="muted">A warm storefront with clear spacing, strong hierarchy, and quick actions.</p>
+      </section>
+
       {loading ? (
         <p>Loading...</p>
       ) : (
@@ -171,11 +154,10 @@ function BooksPage() {
               <p className="author">{book.author}</p>
               <p className="description">{book.description}</p>
               <div className="card-actions">
-                <Link to={`/books/${book.id}`} className="ghost-link">
-                  View details
-                </Link>
+                <Link to={`/books/${book.id}`} className="ghost-link">View details</Link>
                 {auth.user && (
                   <button
+                    type="button"
                     onClick={async () => {
                       await api.addToCart({ bookId: book.id, quantity: 1 });
                       alert('Added to cart');
@@ -218,6 +200,7 @@ function BookDetailPage() {
         <div className="row">
           <input type="number" min="1" value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} />
           <button
+            type="button"
             onClick={async () => {
               await api.addToCart({ bookId: book.id, quantity });
               alert('Added to cart');
@@ -250,27 +233,41 @@ function AuthForm({ mode }) {
   };
 
   return (
-    <form className="panel auth-form" onSubmit={submit}>
+    <form className="panel auth-form auth-shell" onSubmit={submit}>
       <span className="eyebrow">{mode === 'login' ? 'Welcome back' : 'Create your account'}</span>
       <h1>{mode === 'login' ? 'Login' : 'Sign up'}</h1>
       {error && <p className="error">{error}</p>}
-      {mode === 'signup' && (
-        <>
-          <input placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+      <div className="form-stack">
+        {mode === 'signup' && (
+          <div className="field-group">
+            <label>Name</label>
+            <input placeholder="Your full name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          </div>
+        )}
+        {mode === 'signup' && (
+          <div className="field-group">
+            <label>Admin invite code</label>
+            <input
+              placeholder="Optional"
+              value={form.adminCode}
+              onChange={(e) => setForm({ ...form, adminCode: e.target.value })}
+            />
+          </div>
+        )}
+        <div className="field-group">
+          <label>Email</label>
+          <input placeholder="you@example.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+        </div>
+        <div className="field-group">
+          <label>Password</label>
           <input
-            placeholder="Admin invite code optional"
-            value={form.adminCode}
-            onChange={(e) => setForm({ ...form, adminCode: e.target.value })}
+            placeholder="Password"
+            type="password"
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
           />
-        </>
-      )}
-      <input placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-      <input
-        placeholder="Password"
-        type="password"
-        value={form.password}
-        onChange={(e) => setForm({ ...form, password: e.target.value })}
-      />
+        </div>
+      </div>
       <button type="submit">{mode === 'login' ? 'Login' : 'Create account'}</button>
     </form>
   );
@@ -301,7 +298,7 @@ function CartPage() {
         ) : (
           <div className="stack">
             {cart.map((item) => (
-              <div key={item.id} className="cart-row">
+              <div key={item.id} className="order-row">
                 <div>
                   <strong>{item.book.title}</strong>
                   <p>${item.book.price.toFixed(2)}</p>
@@ -317,6 +314,7 @@ function CartPage() {
                     }}
                   />
                   <button
+                    type="button"
                     onClick={async () => {
                       await api.removeCartItem(item.id);
                       load();
@@ -333,7 +331,7 @@ function CartPage() {
       </div>
 
       <form
-        className="panel auth-form"
+        className="panel auth-form checkout-shell"
         onSubmit={async (e) => {
           e.preventDefault();
           setMessage('');
@@ -345,21 +343,32 @@ function CartPage() {
       >
         <h2>Checkout</h2>
         {message && <p className="success">{message}</p>}
-        <input
-          placeholder="Recipient name"
-          value={shipping.shippingName}
-          onChange={(e) => setShipping({ ...shipping, shippingName: e.target.value })}
-        />
-        <input
-          placeholder="Phone"
-          value={shipping.shippingPhone}
-          onChange={(e) => setShipping({ ...shipping, shippingPhone: e.target.value })}
-        />
-        <textarea
-          placeholder="Shipping address"
-          value={shipping.shippingAddress}
-          onChange={(e) => setShipping({ ...shipping, shippingAddress: e.target.value })}
-        />
+        <div className="form-stack">
+          <div className="field-group">
+            <label>Recipient name</label>
+            <input
+              placeholder="Full name"
+              value={shipping.shippingName}
+              onChange={(e) => setShipping({ ...shipping, shippingName: e.target.value })}
+            />
+          </div>
+          <div className="field-group">
+            <label>Phone</label>
+            <input
+              placeholder="03xx-xxxxxxx"
+              value={shipping.shippingPhone}
+              onChange={(e) => setShipping({ ...shipping, shippingPhone: e.target.value })}
+            />
+          </div>
+          <div className="field-group">
+            <label>Shipping address</label>
+            <textarea
+              placeholder="Complete address"
+              value={shipping.shippingAddress}
+              onChange={(e) => setShipping({ ...shipping, shippingAddress: e.target.value })}
+            />
+          </div>
+        </div>
         <button type="submit">Place cash-on-delivery order</button>
       </form>
     </div>
@@ -376,148 +385,19 @@ function OrdersPage() {
     <div className="stack">
       <h1>My Orders</h1>
       {orders.map((order) => (
-        <div key={order.id} className="panel">
-          <strong>Order #{order.id}</strong>
-          <p>Status: {order.status}</p>
-          <p>Total: ${Number(order.totalAmount).toFixed(2)}</p>
+        <div key={order.id} className="order-row panel">
+          <div>
+            <strong>Order #{order.id}</strong>
+            <p>Status: {order.status}</p>
+            <p>Total: ${Number(order.totalAmount).toFixed(2)}</p>
+          </div>
           <ul>
             {order.items.map((item) => (
-              <li key={item.id}>
-                {item.title} x {item.quantity}
-              </li>
+              <li key={item.id}>{item.title} x {item.quantity}</li>
             ))}
           </ul>
         </div>
       ))}
-    </div>
-  );
-}
-
-function AdminPage() {
-  const [books, setBooks] = React.useState([]);
-  const [orders, setOrders] = React.useState([]);
-  const [form, setForm] = React.useState({
-    title: '',
-    author: '',
-    description: '',
-    price: '',
-    stock: '',
-    coverUrl: '',
-    category: ''
-  });
-
-  const load = async () => {
-    const [bookData, orderData] = await Promise.all([api.books(), api.adminOrders()]);
-    setBooks(bookData.books);
-    setOrders(orderData.orders);
-  };
-
-  React.useEffect(() => {
-    load();
-  }, []);
-
-  return (
-    <div className="stack-xl">
-      <section className="panel admin-hero">
-        <div>
-          <span className="eyebrow">Admin book manager</span>
-          <h1>Manage your bookstore catalog</h1>
-          <p className="muted">
-            Add new books, update stock, and keep the storefront fresh. This area is only visible to admin users.
-          </p>
-        </div>
-        <div className="admin-quickcards">
-          <div className="mini-card">
-            <strong>{books.length}</strong>
-            <span>books in catalog</span>
-          </div>
-          <div className="mini-card">
-            <strong>{orders.length}</strong>
-            <span>orders to review</span>
-          </div>
-        </div>
-      </section>
-
-      <div className="panel">
-        <h2>Current Books</h2>
-        <div className="admin-grid">
-          {books.map((book) => (
-            <div key={book.id} className="admin-item">
-              <div className="book-top">
-                <div>
-                  <strong>{book.title}</strong>
-                  <p className="muted">{book.author}</p>
-                </div>
-                <span className="category-tag">{book.category || 'General'}</span>
-              </div>
-              <p>${book.price.toFixed(2)} · Stock {book.stock}</p>
-              <button
-                onClick={async () => {
-                  await api.deleteBook(book.id);
-                  load();
-                }}
-              >
-                Delete book
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <form
-        className="panel auth-form admin-form"
-        onSubmit={async (e) => {
-          e.preventDefault();
-          await api.createBook({ ...form, price: Number(form.price), stock: Number(form.stock) });
-          setForm({ title: '', author: '', description: '', price: '', stock: '', coverUrl: '', category: '' });
-          load();
-        }}
-      >
-        <h2>Add New Book</h2>
-        <div className="form-grid">
-          <input placeholder="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-          <input placeholder="Author" value={form.author} onChange={(e) => setForm({ ...form, author: e.target.value })} />
-          <input placeholder="Category" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
-          <input placeholder="Price" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
-          <input placeholder="Stock" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} />
-          <input placeholder="Cover URL" value={form.coverUrl} onChange={(e) => setForm({ ...form, coverUrl: e.target.value })} />
-        </div>
-        <textarea
-          placeholder="Description"
-          value={form.description}
-          onChange={(e) => setForm({ ...form, description: e.target.value })}
-        />
-        <button type="submit">Add Book</button>
-      </form>
-
-      <div className="panel">
-        <h2>Orders</h2>
-        {orders.map((order) => (
-          <div key={order.id} className="cart-row">
-            <div>
-              <strong>Order #{order.id}</strong>
-              <p>
-                {order.customer_name} - {order.customer_email}
-              </p>
-              <p>Status: {order.status}</p>
-            </div>
-            <div className="row">
-              <select
-                value={order.status}
-                onChange={async (e) => {
-                  await api.updateOrderStatus(order.id, { status: e.target.value });
-                  load();
-                }}
-              >
-                <option value="pending">pending</option>
-                <option value="processing">processing</option>
-                <option value="shipped">shipped</option>
-                <option value="delivered">delivered</option>
-              </select>
-            </div>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
@@ -530,22 +410,8 @@ export default function App() {
         <Route path="/books/:id" element={<BookDetailPage />} />
         <Route path="/login" element={<AuthForm mode="login" />} />
         <Route path="/signup" element={<AuthForm mode="signup" />} />
-        <Route
-          path="/cart"
-          element={
-            <Protected>
-              <CartPage />
-            </Protected>
-          }
-        />
-        <Route
-          path="/orders"
-          element={
-            <Protected>
-              <OrdersPage />
-            </Protected>
-          }
-        />
+        <Route path="/cart" element={<Protected><CartPage /></Protected>} />
+        <Route path="/orders" element={<Protected><OrdersPage /></Protected>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Layout>

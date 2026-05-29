@@ -25,13 +25,21 @@ function LoginPanel({ onLogin }) {
   };
 
   return (
-    <form className="panel auth-form" onSubmit={submit}>
+    <form className="panel auth-form auth-shell" onSubmit={submit}>
       <span className="eyebrow">Admin access</span>
       <h1>Book Manager</h1>
       <p className="muted">Sign in with the fixed admin account to manage the catalog.</p>
       {error && <p className="error">{error}</p>}
-      <input placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} />
-      <input placeholder="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+      <div className="form-stack">
+        <div className="field-group">
+          <label>Username</label>
+          <input placeholder="admin" value={username} onChange={(e) => setUsername(e.target.value)} />
+        </div>
+        <div className="field-group">
+          <label>Password</label>
+          <input placeholder="admin" value={password} type="password" onChange={(e) => setPassword(e.target.value)} />
+        </div>
+      </div>
       <button type="submit">Enter dashboard</button>
     </form>
   );
@@ -66,7 +74,7 @@ function BookForm({ onSave, initial = null, onCancel }) {
 
   return (
     <form
-      className="panel form"
+      className="panel auth-form admin-form"
       onSubmit={(e) => {
         e.preventDefault();
         onSave({
@@ -78,27 +86,28 @@ function BookForm({ onSave, initial = null, onCancel }) {
     >
       <h2>{initial ? 'Edit Book' : 'Add Book'}</h2>
       <div className="form-grid">
-        <input placeholder="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-        <input placeholder="Author" value={form.author} onChange={(e) => setForm({ ...form, author: e.target.value })} />
-        <input placeholder="Category" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
-        <input placeholder="Price" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
-        <input placeholder="Stock" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} />
-        <input placeholder="Cover URL" value={form.coverUrl} onChange={(e) => setForm({ ...form, coverUrl: e.target.value })} />
+        <div className="field-group"><label>Title</label><input placeholder="Book title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
+        <div className="field-group"><label>Author</label><input placeholder="Author name" value={form.author} onChange={(e) => setForm({ ...form, author: e.target.value })} /></div>
+        <div className="field-group"><label>Category</label><input placeholder="Genre / category" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} /></div>
+        <div className="field-group"><label>Price</label><input placeholder="0.00" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} /></div>
+        <div className="field-group"><label>Stock</label><input placeholder="Available copies" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} /></div>
+        <div className="field-group"><label>Cover URL</label><input placeholder="https://..." value={form.coverUrl} onChange={(e) => setForm({ ...form, coverUrl: e.target.value })} /></div>
       </div>
-      <textarea placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+      <div className="field-group">
+        <label>Description</label>
+        <textarea placeholder="Write a short description for the storefront" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+      </div>
       <div className="row">
-        <button type="submit">Save Book</button>
+        <button type="submit">{initial ? 'Update Book' : 'Add Book'}</button>
         {initial && (
-          <button type="button" className="secondary-button" onClick={onCancel}>
-            Cancel
-          </button>
+          <button type="button" className="secondary-button" onClick={onCancel}>Cancel</button>
         )}
       </div>
     </form>
   );
 }
 
-function Dashboard({ user, onLogout }) {
+function Dashboard({ onLogout }) {
   const [books, setBooks] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [editingBook, setEditingBook] = React.useState(null);
@@ -126,19 +135,14 @@ function Dashboard({ user, onLogout }) {
 
   return (
     <div className="stack-xl">
-      <header className="dashboard-head panel">
+      <header className="panel admin-hero">
         <div>
           <span className="eyebrow">Signed in as admin</span>
           <h1>Catalog Manager</h1>
-          <p className="muted">
-            Add books, update existing titles, and remove items from the bookstore catalog.
-          </p>
+          <p className="muted">Add books, update existing titles, and remove items from the bookstore catalog.</p>
         </div>
-        <div className="row">
-          <div className="stat">
-            <strong>{books.length}</strong>
-            <span>books</span>
-          </div>
+        <div className="admin-quickcards">
+          <div className="mini-card"><strong>{books.length}</strong><span>books in catalog</span></div>
           <button onClick={onLogout}>Logout</button>
         </div>
       </header>
@@ -160,8 +164,9 @@ function Dashboard({ user, onLogout }) {
                   <p>${book.price.toFixed(2)} · Stock {book.stock}</p>
                 </div>
                 <div className="row">
-                  <button onClick={() => setEditingBook(book)}>Edit</button>
+                  <button type="button" onClick={() => setEditingBook(book)}>Edit</button>
                   <button
+                    type="button"
                     className="secondary-button"
                     onClick={async () => {
                       await api.deleteBook(book.id);
@@ -201,10 +206,7 @@ export default function App() {
   }, []);
 
   if (checking) return <div className="page-center">Loading...</div>;
+  if (!user) return <LoginPanel onLogin={setUser} />;
 
-  if (!user) {
-    return <LoginPanel onLogin={setUser} />;
-  }
-
-  return <Dashboard user={user} onLogout={() => { localStorage.removeItem('token'); setUser(null); }} />;
+  return <Dashboard onLogout={() => { localStorage.removeItem('token'); setUser(null); }} />;
 }
