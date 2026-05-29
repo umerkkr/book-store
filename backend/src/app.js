@@ -8,20 +8,19 @@ import { config } from './config.js';
 
 const app = express();
 
-const allowedOrigins = new Set([
-  config.clientUrl,
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://localhost:5175',
-  'http://127.0.0.1:5173',
-  'http://127.0.0.1:5174',
-  'http://127.0.0.1:5175'
-]);
+function isLocalOrigin(origin) {
+  try {
+    const url = new URL(origin);
+    return (url.hostname === 'localhost' || url.hostname === '127.0.0.1') && Boolean(url.port);
+  } catch {
+    return false;
+  }
+}
 
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.has(origin)) {
+      if (!origin || origin === config.clientUrl || isLocalOrigin(origin)) {
         callback(null, true);
       } else {
         callback(new Error(`CORS blocked for origin ${origin}`));
