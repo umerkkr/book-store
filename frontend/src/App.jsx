@@ -212,9 +212,13 @@ function BooksPage() {
                   <button
                     type="button"
                     onClick={async () => {
-                      await api.addToCart({ bookId: book.id, quantity: 1 });
-                      window.dispatchEvent(new Event('booknest:cart-updated'));
-                      alert(`${book.title} added to cart`);
+                      try {
+                        await api.addToCart({ bookId: book.id, quantity: 1 });
+                        window.dispatchEvent(new Event('booknest:cart-updated'));
+                        alert(`${book.title} added to cart`);
+                      } catch (error) {
+                        alert(error.message || 'Could not add book to cart');
+                      }
                     }}
                   >
                     Add to cart
@@ -256,9 +260,13 @@ function BookDetailPage() {
           <button
             type="button"
             onClick={async () => {
-              await api.addToCart({ bookId: book.id, quantity });
-              window.dispatchEvent(new Event('booknest:cart-updated'));
-              alert(`${book.title} added to cart`);
+              try {
+                await api.addToCart({ bookId: book.id, quantity });
+                window.dispatchEvent(new Event('booknest:cart-updated'));
+                alert(`${book.title} added to cart`);
+              } catch (error) {
+                alert(error.message || 'Could not add book to cart');
+              }
             }}
           >
             Add to cart
@@ -344,6 +352,7 @@ function CartPage() {
   const [shipping, setShipping] = React.useState({ shippingName: '', shippingPhone: '', shippingAddress: '' });
   const [message, setMessage] = React.useState('');
   const [invoice, setInvoice] = React.useState(null);
+  const [confirmationOpen, setConfirmationOpen] = React.useState(false);
 
   const load = async () => {
     const data = await api.cart();
@@ -408,12 +417,17 @@ function CartPage() {
         onSubmit={async (e) => {
           e.preventDefault();
           setMessage('');
-          const data = await api.createOrder(shipping);
-          setInvoice(data.order);
-          setMessage('Order placed successfully. Cash on delivery invoice generated.');
-          setShipping({ shippingName: '', shippingPhone: '', shippingAddress: '' });
-          load();
-          window.dispatchEvent(new Event('booknest:cart-updated'));
+          try {
+            const data = await api.createOrder(shipping);
+            setInvoice(data?.order ?? null);
+            setMessage('Order placed successfully. Cash on delivery invoice generated.');
+            setConfirmationOpen(true);
+            setShipping({ shippingName: '', shippingPhone: '', shippingAddress: '' });
+            await load();
+            window.dispatchEvent(new Event('booknest:cart-updated'));
+          } catch (error) {
+            setMessage(error.message || 'Unable to place order');
+          }
         }}
       >
         <h2>Checkout</h2>
@@ -469,7 +483,7 @@ function CartPage() {
             </div>
           </div>
           <div className="invoice-items">
-            {invoice.items.map((item) => (
+            {(invoice.items || []).map((item) => (
               <div key={item.id} className="invoice-line">
                 <span>{item.title} x {item.quantity}</span>
                 <span>${item.lineTotal.toFixed(2)}</span>
@@ -477,6 +491,54 @@ function CartPage() {
             ))}
           </div>
         </section>
+      )}
+
+      {confirmationOpen && invoice && (
+        <div className="order-modal-backdrop" role="presentation" onClick={() => setConfirmationOpen(false)}>
+          <div className="order-modal" role="dialog" aria-modal="true" aria-labelledby="order-confirmation-title" onClick={(e) => e.stopPropagation()}>
+            <div className="order-modal-hero">
+              <div className="order-modal-icon">✓</div>
+              <div>
+                <span className="eyebrow">Order placed</span>
+                <h2 id="order-confirmation-title">Your cash on delivery order is confirmed</h2>
+                <p className="muted">Invoice {invoice.invoiceNumber} has been generated and your cart is now ready for the next order.</p>
+              </div>
+            </div>
+
+            <div className="order-modal-grid">
+              <div className="order-modal-card">
+                <span className="muted">Customer</span>
+                <strong>{invoice.shippingName}</strong>
+              </div>
+              <div className="order-modal-card">
+                <span className="muted">Total</span>
+                <strong>${invoice.totalAmount.toFixed(2)}</strong>
+              </div>
+              <div className="order-modal-card">
+                <span className="muted">Payment</span>
+                <strong>{invoice.paymentMethod}</strong>
+              </div>
+              <div className="order-modal-card">
+                <span className="muted">Status</span>
+                <strong>Pending</strong>
+              </div>
+            </div>
+
+            <div className="order-modal-items">
+              {(invoice.items || []).map((item) => (
+                <div key={item.id} className="order-modal-line">
+                  <span>{item.title} x {item.quantity}</span>
+                  <strong>${item.lineTotal.toFixed(2)}</strong>
+                </div>
+              ))}
+            </div>
+
+            <div className="row order-modal-actions">
+              <button type="button" onClick={() => setConfirmationOpen(false)}>Continue shopping</button>
+              <Link to="/orders" className="ghost-button" onClick={() => setConfirmationOpen(false)}>View orders</Link>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
