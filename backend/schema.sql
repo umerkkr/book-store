@@ -59,3 +59,27 @@ WHERE NOT EXISTS (SELECT 1 FROM books WHERE title = 'The Pragmatic Programmer');
 INSERT INTO books (title, author, description, price, stock, cover_url, category)
 SELECT 'Atomic Habits', 'James Clear', 'Small habits that lead to remarkable results.', 18.50, 20, '', 'Self Help'
 WHERE NOT EXISTS (SELECT 1 FROM books WHERE title = 'Atomic Habits');
+
+INSERT INTO books (title, author, description, price, stock, cover_url, category)
+SELECT 'Clean Code', 'Robert C. Martin', 'A handbook of agile software craftsmanship.', 32.00, 14, '', 'Programming'
+WHERE NOT EXISTS (SELECT 1 FROM books WHERE title = 'Clean Code');
+
+INSERT INTO books (title, author, description, price, stock, cover_url, category)
+SELECT 'The Psychology of Money', 'Morgan Housel', 'Timeless lessons on wealth, greed, and happiness.', 21.99, 16, '', 'Finance'
+WHERE NOT EXISTS (SELECT 1 FROM books WHERE title = 'The Psychology of Money');
+
+INSERT INTO books (title, author, description, price, stock, cover_url, category)
+SELECT 'Deep Work', 'Cal Newport', 'Rules for focused success in a distracted world.', 19.75, 10, '', 'Productivity'
+WHERE NOT EXISTS (SELECT 1 FROM books WHERE title = 'Deep Work');
+
+INSERT INTO books (title, author, description, price, stock, cover_url, category)
+SELECT 'Rich Dad Poor Dad', 'Robert T. Kiyosaki', 'What the rich teach their kids about money.', 17.25, 18, '', 'Finance'
+WHERE NOT EXISTS (SELECT 1 FROM books WHERE title = 'Rich Dad Poor Dad');
+
+INSERT INTO books (title, author, description, price, stock, cover_url, category)
+SELECT 'The Alchemist', 'Paulo Coelho', 'A journey of self-discovery and dreams.', 15.49, 22, '', 'Fiction'
+WHERE NOT EXISTS (SELECT 1 FROM books WHERE title = 'The Alchemist');
+
+INSERT INTO books (title, author, description, price, stock, cover_url, category)
+SELECT 'Thinking, Fast and Slow', 'Daniel Kahneman', 'An exploration of the two systems that drive the way we think.', 24.95, 11, '', 'Psychology'
+WHERE NOT EXISTS (SELECT 1 FROM books WHERE title = 'Thinking, Fast and Slow');
