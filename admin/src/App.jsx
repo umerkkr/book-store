@@ -112,12 +112,23 @@ function BookForm({ onSave, initial = null, onCancel }) {
         <div className="field-group"><label>Price</label><input placeholder="0.00" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} /></div>
         <div className="field-group"><label>Stock</label><input placeholder="Available copies" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} /></div>
         <div className="field-group cover-picker-group">
-          <label>Cover photo</label>
+          <div className="field-group-head">
+            <label>Cover photo</label>
+            <span className="muted">Upload from device or use a direct URL</span>
+          </div>
           <div className="row cover-mode-switch">
-            <button type="button" className={coverMode === 'upload' ? '' : 'secondary-button'} onClick={() => setCoverMode('upload')}>
+            <button
+              type="button"
+              className={coverMode === 'upload' ? '' : 'secondary-button'}
+              onClick={() => setCoverMode('upload')}
+            >
               Upload from device
             </button>
-            <button type="button" className={coverMode === 'url' ? '' : 'secondary-button'} onClick={() => setCoverMode('url')}>
+            <button
+              type="button"
+              className={coverMode === 'url' ? '' : 'secondary-button'}
+              onClick={() => setCoverMode('url')}
+            >
               Use image URL
             </button>
           </div>
@@ -130,38 +141,46 @@ function BookForm({ onSave, initial = null, onCancel }) {
                 onChange={(e) => handleFile(e.target.files?.[0])}
               />
               <div className="cover-dropzone-inner">
-                <div className="cover-dropzone-icon">+</div>
-                <div>
-                  <strong>{coverName || 'Drop or choose a cover image'}</strong>
-                  <p>JPG, PNG, WEBP or GIF. The image is stored in the database as text.</p>
+                <div className="cover-dropzone-copy">
+                  <div className="cover-dropzone-icon">+</div>
+                  <div>
+                    <strong>{coverName || 'Drop or choose a cover image'}</strong>
+                    <p>JPG, PNG, WEBP or GIF. Stored in the database and shown to customers.</p>
+                  </div>
+                </div>
+                <div className="cover-dropzone-preview">
+                  {coverPreview ? (
+                    <img src={coverPreview} alt="Cover preview" />
+                  ) : (
+                    <div className="cover-preview-empty small">
+                      <div className="cover-preview-empty-icon">IMG</div>
+                      <p>Preview appears here after upload</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </label>
           ) : (
-            <input
-              placeholder="https://..."
-              value={form.coverUrl}
-              onChange={(e) => {
-                setForm({ ...form, coverUrl: e.target.value });
-                setCoverPreview(e.target.value);
-              }}
-            />
-          )}
-        </div>
-      </div>
-      <div className="cover-preview-wrap">
-        <div className="cover-preview-head">
-          <label>Cover preview</label>
-          <span className="muted">What users will see</span>
-        </div>
-        <div className="cover-preview">
-          {coverPreview ? (
-            <img src={coverPreview} alt="Cover preview" />
-          ) : (
-            <div className="cover-preview-empty">
-              <div className="cover-preview-empty-icon">IMG</div>
-              <p>Choose an image from your device to preview it here</p>
-            </div>
+            <>
+              <input
+                placeholder="https://..."
+                value={form.coverUrl}
+                onChange={(e) => {
+                  setForm({ ...form, coverUrl: e.target.value });
+                  setCoverPreview(e.target.value);
+                }}
+              />
+              <div className="cover-url-preview">
+                {coverPreview ? (
+                  <img src={coverPreview} alt="Cover preview" />
+                ) : (
+                  <div className="cover-preview-empty small">
+                    <div className="cover-preview-empty-icon">IMG</div>
+                    <p>Paste a URL to preview the cover here</p>
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </div>
       </div>
