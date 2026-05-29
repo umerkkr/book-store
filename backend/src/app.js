@@ -8,7 +8,26 @@ import { config } from './config.js';
 
 const app = express();
 
-app.use(cors({ origin: config.clientUrl, credentials: true }));
+const allowedOrigins = new Set([
+  config.clientUrl,
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174'
+]);
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.has(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS blocked for origin ${origin}`));
+      }
+    },
+    credentials: true
+  })
+);
 app.use(express.json());
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
