@@ -5,6 +5,7 @@ import { api } from './api';
 
 function Layout({ children }) {
   const auth = useAuth();
+  const adminUrl = import.meta.env.VITE_ADMIN_URL || 'http://localhost:5175';
 
   return (
     <div className="app-shell">
@@ -16,7 +17,11 @@ function Layout({ children }) {
           <Link to="/">Books</Link>
           {auth.user && <Link to="/cart">Cart</Link>}
           {auth.user && <Link to="/orders">Orders</Link>}
-          {auth.user?.role === 'admin' && <Link to="/admin">Admin</Link>}
+          {auth.user?.role === 'admin' && (
+            <a href={adminUrl} target="_blank" rel="noreferrer">
+              Admin Books
+            </a>
+          )}
           {auth.user ? <button onClick={auth.logout}>Logout</button> : <Link to="/login">Login</Link>}
           {!auth.user && <Link to="/signup">Sign up</Link>}
         </nav>
@@ -413,20 +418,46 @@ function AdminPage() {
 
   return (
     <div className="stack-xl">
+      <section className="panel admin-hero">
+        <div>
+          <span className="eyebrow">Admin book manager</span>
+          <h1>Manage your bookstore catalog</h1>
+          <p className="muted">
+            Add new books, update stock, and keep the storefront fresh. This area is only visible to admin users.
+          </p>
+        </div>
+        <div className="admin-quickcards">
+          <div className="mini-card">
+            <strong>{books.length}</strong>
+            <span>books in catalog</span>
+          </div>
+          <div className="mini-card">
+            <strong>{orders.length}</strong>
+            <span>orders to review</span>
+          </div>
+        </div>
+      </section>
+
       <div className="panel">
-        <h1>Admin Dashboard</h1>
+        <h2>Current Books</h2>
         <div className="admin-grid">
           {books.map((book) => (
             <div key={book.id} className="admin-item">
-              <strong>{book.title}</strong>
-              <p>${book.price.toFixed(2)}</p>
+              <div className="book-top">
+                <div>
+                  <strong>{book.title}</strong>
+                  <p className="muted">{book.author}</p>
+                </div>
+                <span className="category-tag">{book.category || 'General'}</span>
+              </div>
+              <p>${book.price.toFixed(2)} · Stock {book.stock}</p>
               <button
                 onClick={async () => {
                   await api.deleteBook(book.id);
                   load();
                 }}
               >
-                Delete
+                Delete book
               </button>
             </div>
           ))}
@@ -434,7 +465,7 @@ function AdminPage() {
       </div>
 
       <form
-        className="panel auth-form"
+        className="panel auth-form admin-form"
         onSubmit={async (e) => {
           e.preventDefault();
           await api.createBook({ ...form, price: Number(form.price), stock: Number(form.stock) });
@@ -442,15 +473,21 @@ function AdminPage() {
           load();
         }}
       >
-        <h2>Add Book</h2>
-        <input placeholder="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-        <input placeholder="Author" value={form.author} onChange={(e) => setForm({ ...form, author: e.target.value })} />
-        <textarea placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-        <input placeholder="Price" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
-        <input placeholder="Stock" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} />
-        <input placeholder="Cover URL" value={form.coverUrl} onChange={(e) => setForm({ ...form, coverUrl: e.target.value })} />
-        <input placeholder="Category" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
-        <button type="submit">Save Book</button>
+        <h2>Add New Book</h2>
+        <div className="form-grid">
+          <input placeholder="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+          <input placeholder="Author" value={form.author} onChange={(e) => setForm({ ...form, author: e.target.value })} />
+          <input placeholder="Category" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
+          <input placeholder="Price" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
+          <input placeholder="Stock" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} />
+          <input placeholder="Cover URL" value={form.coverUrl} onChange={(e) => setForm({ ...form, coverUrl: e.target.value })} />
+        </div>
+        <textarea
+          placeholder="Description"
+          value={form.description}
+          onChange={(e) => setForm({ ...form, description: e.target.value })}
+        />
+        <button type="submit">Add Book</button>
       </form>
 
       <div className="panel">
@@ -507,14 +544,6 @@ export default function App() {
             <Protected>
               <OrdersPage />
             </Protected>
-          }
-        />
-        <Route
-          path="/admin"
-          element={
-            <AdminOnly>
-              <AdminPage />
-            </AdminOnly>
           }
         />
         <Route path="*" element={<Navigate to="/" replace />} />

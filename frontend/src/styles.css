@@ -223,6 +223,25 @@ a {
   gap: 1rem;
 }
 
+.admin-hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+}
+
+.admin-quickcards {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 240px;
+}
+
+.admin-quickcards strong {
+  display: block;
+  font-size: 1.8rem;
+  color: var(--accent-2);
+}
+
 .hero-grid,
 .admin-grid {
   display: grid;
@@ -400,6 +419,16 @@ button:hover {
   max-width: 680px;
 }
 
+.admin-form {
+  max-width: 900px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
 .auth-form h1,
 .auth-form h2,
 .panel h1,
@@ -415,8 +444,14 @@ button:hover {
 
   .hero-stats,
   .hero-grid,
-  .admin-grid {
+  .admin-grid,
+  .form-grid {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-hero {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 
@@ -429,7 +464,8 @@ button:hover {
 
   .hero-stats,
   .hero-grid,
-  .admin-grid {
+  .admin-grid,
+  .form-grid {
     grid-template-columns: 1fr;
   }
 
