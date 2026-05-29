@@ -367,6 +367,69 @@ button:hover { transform: translateY(-1px); }
 .order-modal-actions {
   justify-content: flex-end;
 }
+
+.toast {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  min-width: min(420px, calc(100vw - 2rem));
+  max-width: 420px;
+  background: linear-gradient(180deg, rgba(255, 250, 243, 0.98), rgba(245, 234, 219, 0.98));
+  border: 1px solid rgba(116, 91, 64, 0.16);
+  border-left-width: 6px;
+  border-radius: 22px;
+  box-shadow: 0 24px 70px rgba(25, 18, 12, 0.24);
+  padding: 1rem;
+  z-index: 50;
+  display: flex;
+  gap: 0.9rem;
+  align-items: flex-start;
+}
+
+.toast.success {
+  border-left-color: #2f6a45;
+}
+
+.toast.error {
+  border-left-color: #9b3b2e;
+}
+
+.toast.info {
+  border-left-color: #8a5f35;
+}
+
+.toast-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: rgba(47, 106, 69, 0.12);
+  color: #2f6a45;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  flex: 0 0 auto;
+}
+
+.toast.error .toast-icon {
+  background: rgba(155, 59, 46, 0.12);
+  color: #9b3b2e;
+}
+
+.toast p {
+  margin: 0.2rem 0 0;
+  color: var(--muted);
+}
+
+.toast-close {
+  margin-left: auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.65);
+  color: var(--accent-2);
+  box-shadow: none;
+}
 .auth-shell, .checkout-shell { max-width: 720px; margin: 0 auto; }
 .form-stack { display: grid; gap: 0.95rem; margin: 1rem 0 1.15rem; }
 .field-group { display: grid; gap: 0.45rem; }
@@ -405,5 +468,12 @@ button:hover { transform: translateY(-1px); }
 
   .order-modal-hero {
     flex-direction: column;
+  }
+
+  .toast {
+    right: 0.75rem;
+    left: 0.75rem;
+    min-width: auto;
+    max-width: none;
   }
 }

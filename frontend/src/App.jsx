@@ -27,13 +27,36 @@ function Layout({ children }) {
   );
 }
 
+function Toast({ toast, onDismiss }) {
+  React.useEffect(() => {
+    if (!toast) return undefined;
+    const timer = window.setTimeout(() => onDismiss(), 2800);
+    return () => window.clearTimeout(timer);
+  }, [toast, onDismiss]);
+
+  if (!toast) return null;
+
+  return (
+    <div className={`toast ${toast.type || 'info'}`}>
+      <div className="toast-icon">{toast.type === 'success' ? '✓' : 'i'}</div>
+      <div>
+        <strong>{toast.title}</strong>
+        {toast.message && <p>{toast.message}</p>}
+      </div>
+      <button type="button" className="toast-close" onClick={onDismiss} aria-label="Dismiss notification">
+        ×
+      </button>
+    </div>
+  );
+}
+
 function Protected({ children }) {
   const auth = useAuth();
   if (!auth.loading && !auth.user) return <Navigate to="/login" replace />;
   return children;
 }
 
-function BooksPage() {
+function BooksPage({ showToast }) {
   const [books, setBooks] = React.useState([]);
   const [q, setQ] = React.useState('');
   const [loading, setLoading] = React.useState(true);
@@ -215,9 +238,9 @@ function BooksPage() {
                       try {
                         await api.addToCart({ bookId: book.id, quantity: 1 });
                         window.dispatchEvent(new Event('booknest:cart-updated'));
-                        alert(`${book.title} added to cart`);
+                        showToast('Added to cart', book.title, 'success');
                       } catch (error) {
-                        alert(error.message || 'Could not add book to cart');
+                        showToast('Could not add book', error.message || 'Please try again', 'error');
                       }
                     }}
                   >
@@ -233,7 +256,7 @@ function BooksPage() {
   );
 }
 
-function BookDetailPage() {
+function BookDetailPage({ showToast }) {
   const { id } = useParams();
   const [book, setBook] = React.useState(null);
   const [quantity, setQuantity] = React.useState(1);
@@ -263,9 +286,9 @@ function BookDetailPage() {
               try {
                 await api.addToCart({ bookId: book.id, quantity });
                 window.dispatchEvent(new Event('booknest:cart-updated'));
-                alert(`${book.title} added to cart`);
+                showToast('Added to cart', book.title, 'success');
               } catch (error) {
-                alert(error.message || 'Could not add book to cart');
+                showToast('Could not add book', error.message || 'Please try again', 'error');
               }
             }}
           >
@@ -347,7 +370,7 @@ function AuthForm({ mode }) {
   );
 }
 
-function CartPage() {
+function CartPage({ showToast }) {
   const [cart, setCart] = React.useState([]);
   const [shipping, setShipping] = React.useState({ shippingName: '', shippingPhone: '', shippingAddress: '' });
   const [message, setMessage] = React.useState('');
@@ -422,6 +445,7 @@ function CartPage() {
             setInvoice(data?.order ?? null);
             setMessage('Order placed successfully. Cash on delivery invoice generated.');
             setConfirmationOpen(true);
+            showToast('Order placed', `Invoice ${data?.order?.invoiceNumber || ''}`, 'success');
             setShipping({ shippingName: '', shippingPhone: '', shippingAddress: '' });
             await load();
             window.dispatchEvent(new Event('booknest:cart-updated'));
@@ -572,17 +596,26 @@ function OrdersPage() {
 }
 
 export default function App() {
+  const [toast, setToast] = React.useState(null);
+
+  const showToast = React.useCallback((title, message = '', type = 'info') => {
+    setToast({ title, message, type });
+  }, []);
+
   return (
-    <Layout>
-      <Routes>
-        <Route path="/" element={<BooksPage />} />
-        <Route path="/books/:id" element={<BookDetailPage />} />
-        <Route path="/login" element={<AuthForm mode="login" />} />
-        <Route path="/signup" element={<AuthForm mode="signup" />} />
-        <Route path="/cart" element={<Protected><CartPage /></Protected>} />
-        <Route path="/orders" element={<Protected><OrdersPage /></Protected>} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Layout>
+    <>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<BooksPage showToast={showToast} />} />
+          <Route path="/books/:id" element={<BookDetailPage showToast={showToast} />} />
+          <Route path="/login" element={<AuthForm mode="login" />} />
+          <Route path="/signup" element={<AuthForm mode="signup" />} />
+          <Route path="/cart" element={<Protected><CartPage showToast={showToast} /></Protected>} />
+          <Route path="/orders" element={<Protected><OrdersPage /></Protected>} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Layout>
+      <Toast toast={toast} onDismiss={() => setToast(null)} />
+    </>
   );
 }
