@@ -226,7 +226,7 @@ function BooksPage({ showToast }) {
                 {book.coverUrl ? (
                   <img src={book.coverUrl} alt={book.title} />
                 ) : (
-                  <div className="book-cover-fallback">No cover</div>
+                  <div className="book-cover-fallback"><span>Book cover</span></div>
                 )}
               </div>
               <div className="book-top">
@@ -284,7 +284,7 @@ function BookDetailPage({ showToast }) {
           {book.coverUrl ? (
             <img src={book.coverUrl} alt={book.title} />
           ) : (
-            <div className="book-cover-fallback large">No cover image</div>
+            <div className="book-cover-fallback large"><span>Book cover image</span></div>
           )}
         </div>
         <p className="description">{book.description}</p>

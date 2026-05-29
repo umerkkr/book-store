@@ -58,6 +58,9 @@ function BookForm({ onSave, initial = null, onCancel }) {
       category: ''
     }
   );
+  const [coverMode, setCoverMode] = React.useState(initial?.coverUrl?.startsWith('data:') ? 'upload' : 'url');
+  const [coverPreview, setCoverPreview] = React.useState(initial?.coverUrl || '');
+  const [coverName, setCoverName] = React.useState('');
 
   React.useEffect(() => {
     setForm(
@@ -71,20 +74,36 @@ function BookForm({ onSave, initial = null, onCancel }) {
         category: ''
       }
     );
+    setCoverMode(initial?.coverUrl?.startsWith('data:') ? 'upload' : 'url');
+    setCoverPreview(initial?.coverUrl || '');
+    setCoverName('');
   }, [initial]);
+
+  const handleFile = (file) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = String(reader.result || '');
+      setForm((current) => ({ ...current, coverUrl: dataUrl }));
+      setCoverPreview(dataUrl);
+      setCoverMode('upload');
+      setCoverName(file.name);
+    };
+    reader.readAsDataURL(file);
+  };
 
   return (
     <form
       className="panel auth-form admin-form"
-      onSubmit={(e) => {
-        e.preventDefault();
-        onSave({
-          ...form,
-          price: Number(form.price),
+        onSubmit={(e) => {
+          e.preventDefault();
+          onSave({
+            ...form,
+            price: Number(form.price),
           stock: Number(form.stock)
         });
       }}
-    >
+      >
       <h2>{initial ? 'Edit Book' : 'Add Book'}</h2>
       <div className="form-grid">
         <div className="field-group"><label>Title</label><input placeholder="Book title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
@@ -92,15 +111,57 @@ function BookForm({ onSave, initial = null, onCancel }) {
         <div className="field-group"><label>Category</label><input placeholder="Genre / category" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} /></div>
         <div className="field-group"><label>Price</label><input placeholder="0.00" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} /></div>
         <div className="field-group"><label>Stock</label><input placeholder="Available copies" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} /></div>
-        <div className="field-group"><label>Cover URL</label><input placeholder="https://..." value={form.coverUrl} onChange={(e) => setForm({ ...form, coverUrl: e.target.value })} /></div>
+        <div className="field-group cover-picker-group">
+          <label>Cover photo</label>
+          <div className="row cover-mode-switch">
+            <button type="button" className={coverMode === 'upload' ? '' : 'secondary-button'} onClick={() => setCoverMode('upload')}>
+              Upload from device
+            </button>
+            <button type="button" className={coverMode === 'url' ? '' : 'secondary-button'} onClick={() => setCoverMode('url')}>
+              Use image URL
+            </button>
+          </div>
+          {coverMode === 'upload' ? (
+            <label className="cover-dropzone">
+              <input
+                className="cover-file-input"
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleFile(e.target.files?.[0])}
+              />
+              <div className="cover-dropzone-inner">
+                <div className="cover-dropzone-icon">+</div>
+                <div>
+                  <strong>{coverName || 'Drop or choose a cover image'}</strong>
+                  <p>JPG, PNG, WEBP or GIF. The image is stored in the database as text.</p>
+                </div>
+              </div>
+            </label>
+          ) : (
+            <input
+              placeholder="https://..."
+              value={form.coverUrl}
+              onChange={(e) => {
+                setForm({ ...form, coverUrl: e.target.value });
+                setCoverPreview(e.target.value);
+              }}
+            />
+          )}
+        </div>
       </div>
       <div className="cover-preview-wrap">
-        <label>Cover preview</label>
+        <div className="cover-preview-head">
+          <label>Cover preview</label>
+          <span className="muted">What users will see</span>
+        </div>
         <div className="cover-preview">
-          {form.coverUrl ? (
-            <img src={form.coverUrl} alt="Cover preview" />
+          {coverPreview ? (
+            <img src={coverPreview} alt="Cover preview" />
           ) : (
-            <div className="cover-preview-empty">Paste a cover image URL to preview it here</div>
+            <div className="cover-preview-empty">
+              <div className="cover-preview-empty-icon">IMG</div>
+              <p>Choose an image from your device to preview it here</p>
+            </div>
           )}
         </div>
       </div>
