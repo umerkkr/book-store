@@ -5,10 +5,13 @@ import { api } from './api';
 
 function Layout({ children }) {
   const auth = useAuth();
+
   return (
-    <div>
+    <div className="app-shell">
       <header className="topbar">
-        <Link to="/" className="brand">BookNest</Link>
+        <Link to="/" className="brand">
+          BookNest
+        </Link>
         <nav className="nav">
           <Link to="/">Books</Link>
           {auth.user && <Link to="/cart">Cart</Link>}
@@ -39,11 +42,15 @@ function BooksPage() {
   const [books, setBooks] = React.useState([]);
   const [q, setQ] = React.useState('');
   const [loading, setLoading] = React.useState(true);
+  const [activeFilter, setActiveFilter] = React.useState('All');
   const auth = useAuth();
 
-  const load = async (query = '') => {
+  const load = async (query = '', category = '') => {
     setLoading(true);
-    const data = await api.books(query ? `?q=${encodeURIComponent(query)}` : '');
+    const params = new URLSearchParams();
+    if (query) params.set('q', query);
+    if (category) params.set('category', category);
+    const data = await api.books(params.toString() ? `?${params.toString()}` : '');
     setBooks(data.books);
     setLoading(false);
   };
@@ -52,30 +59,116 @@ function BooksPage() {
     load();
   }, []);
 
+  const categories = ['All', 'Programming', 'Finance', 'Productivity', 'Fiction', 'Psychology', 'Self Help'];
+
   return (
-    <div>
-      <div className="page-heading">
-        <div>
-          <h1>Books</h1>
-          <p>Discover your next read from our curated catalog.</p>
+    <div className="stack-xl">
+      <section className="hero">
+        <div className="hero-copy">
+          <span className="eyebrow">Curated reading, faster discovery</span>
+          <h1>Find your next great book in a store that feels alive.</h1>
+          <p>
+            Browse hand-picked titles, search by book name or author, and add favorites to cart in a clean
+            premium interface.
+          </p>
+          <div className="hero-actions">
+            <button onClick={() => document.getElementById('book-search')?.focus()}>Search books</button>
+            <Link to={auth.user ? '/cart' : '/signup'} className="ghost-button">
+              {auth.user ? 'Go to cart' : 'Create account'}
+            </Link>
+          </div>
+          <div className="hero-stats">
+            <div>
+              <strong>{books.length}</strong>
+              <span>books available</span>
+            </div>
+            <div>
+              <strong>COD</strong>
+              <span>cash on delivery</span>
+            </div>
+            <div>
+              <strong>Fast</strong>
+              <span>search and checkout</span>
+            </div>
+          </div>
         </div>
-        <div className="searchbar">
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by title or author" />
-          <button onClick={() => load(q)}>Search</button>
+        <div className="hero-panel">
+          <div className="hero-card">
+            <span className="pill">Featured</span>
+            <h3>The modern bookstore dashboard</h3>
+            <p>Elegant cards, useful search, and a catalog that works immediately on a fresh install.</p>
+          </div>
+          <div className="hero-grid">
+            <div className="mini-card">Clean catalog</div>
+            <div className="mini-card">Book detail pages</div>
+            <div className="mini-card">Cart + order flow</div>
+            <div className="mini-card">Admin tools</div>
+          </div>
         </div>
-      </div>
+      </section>
+
+      <section className="toolbar panel">
+        <form
+          className="searchbar"
+          onSubmit={(e) => {
+            e.preventDefault();
+            load(q, activeFilter === 'All' ? '' : activeFilter);
+          }}
+        >
+          <input
+            id="book-search"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search by book name or author"
+          />
+          <button type="submit">Search</button>
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={() => {
+              setQ('');
+              setActiveFilter('All');
+              load();
+            }}
+          >
+            Reset
+          </button>
+        </form>
+
+        <div className="filter-row">
+          {categories.map((category) => (
+            <button
+              key={category}
+              type="button"
+              className={category === activeFilter ? 'filter-chip active' : 'filter-chip'}
+              onClick={() => {
+                setActiveFilter(category);
+                load(q, category === 'All' ? '' : category);
+              }}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+      </section>
+
       {loading ? (
         <p>Loading...</p>
       ) : (
-        <div className="grid">
+        <section className="grid">
           {books.map((book) => (
-            <article key={book.id} className="card">
+            <article key={book.id} className="card book-card">
+              <div className="book-top">
+                <span className="category-tag">{book.category || 'General'}</span>
+                <strong className="price">${book.price.toFixed(2)}</strong>
+              </div>
               <h3>{book.title}</h3>
-              <p>{book.author}</p>
-              <p>{book.category || 'General'}</p>
-              <strong>${book.price.toFixed(2)}</strong>
+              <p className="author">{book.author}</p>
+              <p className="description">{book.description}</p>
               <div className="card-actions">
-                <Link to={`/books/${book.id}`}>View details</Link>
+                <Link to={`/books/${book.id}`} className="ghost-link">
+                  View details
+                </Link>
                 {auth.user && (
                   <button
                     onClick={async () => {
@@ -89,7 +182,7 @@ function BooksPage() {
               </div>
             </article>
           ))}
-        </div>
+        </section>
       )}
     </div>
   );
@@ -99,36 +192,37 @@ function BookDetailPage() {
   const { id } = useParams();
   const [book, setBook] = React.useState(null);
   const [quantity, setQuantity] = React.useState(1);
+
   React.useEffect(() => {
     api.book(id).then((data) => setBook(data.book));
   }, [id]);
 
   if (!book) return <p>Loading...</p>;
+
   return (
-    <div className="panel">
-      <h1>{book.title}</h1>
-      <p>By {book.author}</p>
-      <p>{book.description}</p>
-      <p>Category: {book.category || 'General'}</p>
-      <p>Stock: {book.stock}</p>
-      <p className="price">${book.price.toFixed(2)}</p>
-      <div className="row">
-        <input
-          type="number"
-          min="1"
-          value={quantity}
-          onChange={(e) => setQuantity(Number(e.target.value))}
-        />
-        <button
-          onClick={async () => {
-            await api.addToCart({ bookId: book.id, quantity });
-            alert('Added to cart');
-          }}
-        >
-          Add to cart
-        </button>
+    <section className="panel detail-layout">
+      <div className="detail-hero">
+        <span className="pill">{book.category || 'General'}</span>
+        <h1>{book.title}</h1>
+        <p className="author">By {book.author}</p>
+        <p className="description">{book.description}</p>
       </div>
-    </div>
+      <div className="detail-sidebar">
+        <div className="detail-price">${book.price.toFixed(2)}</div>
+        <p>Stock: {book.stock}</p>
+        <div className="row">
+          <input type="number" min="1" value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} />
+          <button
+            onClick={async () => {
+              await api.addToCart({ bookId: book.id, quantity });
+              alert('Added to cart');
+            }}
+          >
+            Add to cart
+          </button>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -152,6 +246,7 @@ function AuthForm({ mode }) {
 
   return (
     <form className="panel auth-form" onSubmit={submit}>
+      <span className="eyebrow">{mode === 'login' ? 'Welcome back' : 'Create your account'}</span>
       <h1>{mode === 'login' ? 'Login' : 'Sign up'}</h1>
       {error && <p className="error">{error}</p>}
       {mode === 'signup' && (
@@ -193,7 +288,7 @@ function CartPage() {
   const total = cart.reduce((sum, item) => sum + item.book.price * item.quantity, 0);
 
   return (
-    <div className="stack">
+    <div className="stack-xl">
       <div className="panel">
         <h1>Cart</h1>
         {cart.length === 0 ? (
@@ -271,6 +366,7 @@ function OrdersPage() {
   React.useEffect(() => {
     api.orders().then((data) => setOrders(data.orders));
   }, []);
+
   return (
     <div className="stack">
       <h1>My Orders</h1>
@@ -316,7 +412,7 @@ function AdminPage() {
   }, []);
 
   return (
-    <div className="stack">
+    <div className="stack-xl">
       <div className="panel">
         <h1>Admin Dashboard</h1>
         <div className="admin-grid">
@@ -324,7 +420,14 @@ function AdminPage() {
             <div key={book.id} className="admin-item">
               <strong>{book.title}</strong>
               <p>${book.price.toFixed(2)}</p>
-              <button onClick={async () => { await api.deleteBook(book.id); load(); }}>Delete</button>
+              <button
+                onClick={async () => {
+                  await api.deleteBook(book.id);
+                  load();
+                }}
+              >
+                Delete
+              </button>
             </div>
           ))}
         </div>
@@ -356,7 +459,9 @@ function AdminPage() {
           <div key={order.id} className="cart-row">
             <div>
               <strong>Order #{order.id}</strong>
-              <p>{order.customer_name} - {order.customer_email}</p>
+              <p>
+                {order.customer_name} - {order.customer_email}
+              </p>
               <p>Status: {order.status}</p>
             </div>
             <div className="row">
@@ -388,9 +493,30 @@ export default function App() {
         <Route path="/books/:id" element={<BookDetailPage />} />
         <Route path="/login" element={<AuthForm mode="login" />} />
         <Route path="/signup" element={<AuthForm mode="signup" />} />
-        <Route path="/cart" element={<Protected><CartPage /></Protected>} />
-        <Route path="/orders" element={<Protected><OrdersPage /></Protected>} />
-        <Route path="/admin" element={<AdminOnly><AdminPage /></AdminOnly>} />
+        <Route
+          path="/cart"
+          element={
+            <Protected>
+              <CartPage />
+            </Protected>
+          }
+        />
+        <Route
+          path="/orders"
+          element={
+            <Protected>
+              <OrdersPage />
+            </Protected>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <AdminOnly>
+              <AdminPage />
+            </AdminOnly>
+          }
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Layout>
