@@ -111,6 +111,8 @@ function Dashboard({ onLogout }) {
   const [books, setBooks] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [editingBook, setEditingBook] = React.useState(null);
+  const [notice, setNotice] = React.useState('');
+  const [recentBook, setRecentBook] = React.useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -125,12 +127,16 @@ function Dashboard({ onLogout }) {
 
   const handleSave = async (payload) => {
     if (editingBook) {
-      await api.updateBook(editingBook.id, payload);
+      const data = await api.updateBook(editingBook.id, payload);
       setEditingBook(null);
+      setRecentBook(data.book);
     } else {
-      await api.createBook(payload);
+      const data = await api.createBook(payload);
+      setRecentBook(data.book);
     }
+    setNotice('Book saved successfully');
     load();
+    window.setTimeout(() => setNotice(''), 3000);
   };
 
   return (
@@ -140,12 +146,23 @@ function Dashboard({ onLogout }) {
           <span className="eyebrow">Signed in as admin</span>
           <h1>Catalog Manager</h1>
           <p className="muted">Add books, update existing titles, and remove items from the bookstore catalog.</p>
+          {notice && <p className="success admin-notice">{notice}</p>}
         </div>
         <div className="admin-quickcards">
           <div className="mini-card"><strong>{books.length}</strong><span>books in catalog</span></div>
           <button onClick={onLogout}>Logout</button>
         </div>
       </header>
+
+      {recentBook && (
+        <section className="panel">
+          <span className="eyebrow">Recently saved</span>
+          <h2>{recentBook.title}</h2>
+          <p className="muted">
+            {recentBook.author} · {recentBook.category || 'General'} · ${recentBook.price.toFixed(2)}
+          </p>
+        </section>
+      )}
 
       <BookForm onSave={handleSave} initial={editingBook} onCancel={() => setEditingBook(null)} />
 
