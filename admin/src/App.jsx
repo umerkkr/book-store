@@ -2,7 +2,7 @@ import React from 'react';
 import { api } from './api';
 
 function LoginPanel({ onLogin }) {
-  const [email, setEmail] = React.useState('');
+  const [username, setUsername] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [error, setError] = React.useState('');
 
@@ -10,7 +10,7 @@ function LoginPanel({ onLogin }) {
     e.preventDefault();
     setError('');
     try {
-      const data = await api.login({ email, password });
+      const data = await api.login({ username, password });
       localStorage.setItem('token', data.token);
       const me = await api.me();
       if (me.user.role !== 'admin') {
@@ -28,9 +28,9 @@ function LoginPanel({ onLogin }) {
     <form className="panel auth-form" onSubmit={submit}>
       <span className="eyebrow">Admin access</span>
       <h1>Book Manager</h1>
-      <p className="muted">Sign in with an admin account to manage the catalog.</p>
+      <p className="muted">Sign in with the fixed admin account to manage the catalog.</p>
       {error && <p className="error">{error}</p>}
-      <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+      <input placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} />
       <input placeholder="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
       <button type="submit">Enter dashboard</button>
     </form>
