@@ -10,7 +10,7 @@ function Layout({ children }) {
   return (
     <div className="app-shell">
       <header className="topbar">
-        <Link to="/" className="brand">BookNest</Link>
+        <span className="brand">BookNest</span>
         <nav className="nav">
           <Link to="/">Books</Link>
           {auth.user && <Link to="/cart">Cart</Link>}
@@ -38,6 +38,7 @@ function BooksPage() {
   const [q, setQ] = React.useState('');
   const [loading, setLoading] = React.useState(true);
   const [activeFilter, setActiveFilter] = React.useState('All');
+  const [cartPreview, setCartPreview] = React.useState([]);
   const auth = useAuth();
 
   const load = async (query = '', category = '') => {
@@ -50,9 +51,30 @@ function BooksPage() {
     setLoading(false);
   };
 
+  const loadCart = async () => {
+    if (!auth.user) {
+      setCartPreview([]);
+      return;
+    }
+    const data = await api.cart();
+    setCartPreview(data.items);
+  };
+
   React.useEffect(() => {
     load();
+    loadCart();
   }, []);
+
+  React.useEffect(() => {
+    const onCartChanged = () => load(q, activeFilter === 'All' ? '' : activeFilter);
+    const onCartPreviewChanged = () => loadCart();
+    window.addEventListener('booknest:cart-updated', onCartChanged);
+    window.addEventListener('booknest:cart-updated', onCartPreviewChanged);
+    return () => {
+      window.removeEventListener('booknest:cart-updated', onCartChanged);
+      window.removeEventListener('booknest:cart-updated', onCartPreviewChanged);
+    };
+  }, [q, activeFilter, auth.user]);
 
   const categories = ['All', 'Programming', 'Finance', 'Productivity', 'Fiction', 'Psychology', 'Self Help'];
 
@@ -132,6 +154,37 @@ function BooksPage() {
         </div>
       </section>
 
+      {auth.user && (
+        <section className="panel cart-preview">
+          <div className="cart-preview-head">
+            <div>
+              <span className="eyebrow">Live cart</span>
+              <h2>Your selected books</h2>
+            </div>
+            <Link to="/cart" className="ghost-link">Open cart</Link>
+          </div>
+          {cartPreview.length === 0 ? (
+            <p className="muted">No books in cart yet. Add any title and it will appear here immediately.</p>
+          ) : (
+            <div className="cart-preview-list">
+              {cartPreview.slice(0, 3).map((item) => (
+                <div key={item.id} className="cart-preview-row">
+                  <div>
+                    <strong>{item.book.title}</strong>
+                    <p className="muted">{item.quantity} item(s)</p>
+                  </div>
+                  <strong>${(item.book.price * item.quantity).toFixed(2)}</strong>
+                </div>
+              ))}
+              <div className="cart-preview-footer">
+                <span>Total</span>
+                <strong>${cartPreview.reduce((sum, item) => sum + item.book.price * item.quantity, 0).toFixed(2)}</strong>
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
       <section className="section-head">
         <div>
           <span className="eyebrow">Featured catalog</span>
@@ -160,7 +213,8 @@ function BooksPage() {
                     type="button"
                     onClick={async () => {
                       await api.addToCart({ bookId: book.id, quantity: 1 });
-                      alert('Added to cart');
+                      window.dispatchEvent(new Event('booknest:cart-updated'));
+                      alert(`${book.title} added to cart`);
                     }}
                   >
                     Add to cart
@@ -203,7 +257,8 @@ function BookDetailPage() {
             type="button"
             onClick={async () => {
               await api.addToCart({ bookId: book.id, quantity });
-              alert('Added to cart');
+              window.dispatchEvent(new Event('booknest:cart-updated'));
+              alert(`${book.title} added to cart`);
             }}
           >
             Add to cart
@@ -236,6 +291,7 @@ function AuthForm({ mode }) {
     <form className="panel auth-form auth-shell" onSubmit={submit}>
       <span className="eyebrow">{mode === 'login' ? 'Welcome back' : 'Create your account'}</span>
       <h1>{mode === 'login' ? 'Login' : 'Sign up'}</h1>
+      <p className="muted">Use a valid email like <strong>user@gmail.com</strong>.</p>
       {error && <p className="error">{error}</p>}
       <div className="form-stack">
         {mode === 'signup' && (
@@ -256,13 +312,23 @@ function AuthForm({ mode }) {
         )}
         <div className="field-group">
           <label>Email</label>
-          <input placeholder="you@example.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+          <input
+            placeholder="you@gmail.com"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            required
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+          />
         </div>
         <div className="field-group">
           <label>Password</label>
           <input
             placeholder="Password"
             type="password"
+            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+            required
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
           />
@@ -277,6 +343,7 @@ function CartPage() {
   const [cart, setCart] = React.useState([]);
   const [shipping, setShipping] = React.useState({ shippingName: '', shippingPhone: '', shippingAddress: '' });
   const [message, setMessage] = React.useState('');
+  const [invoice, setInvoice] = React.useState(null);
 
   const load = async () => {
     const data = await api.cart();
@@ -287,6 +354,12 @@ function CartPage() {
     load();
   }, []);
 
+  React.useEffect(() => {
+    const onCartChanged = () => load();
+    window.addEventListener('booknest:cart-updated', onCartChanged);
+    return () => window.removeEventListener('booknest:cart-updated', onCartChanged);
+  }, []);
+
   const total = cart.reduce((sum, item) => sum + item.book.price * item.quantity, 0);
 
   return (
@@ -294,7 +367,7 @@ function CartPage() {
       <div className="panel">
         <h1>Cart</h1>
         {cart.length === 0 ? (
-          <p>Your cart is empty.</p>
+          <p>Your cart is empty. Add a few books from the catalog to build your order.</p>
         ) : (
           <div className="stack">
             {cart.map((item) => (
@@ -335,10 +408,12 @@ function CartPage() {
         onSubmit={async (e) => {
           e.preventDefault();
           setMessage('');
-          await api.createOrder(shipping);
-          setMessage('Order placed successfully. Cart cleared.');
+          const data = await api.createOrder(shipping);
+          setInvoice(data.order);
+          setMessage('Order placed successfully. Cash on delivery invoice generated.');
           setShipping({ shippingName: '', shippingPhone: '', shippingAddress: '' });
           load();
+          window.dispatchEvent(new Event('booknest:cart-updated'));
         }}
       >
         <h2>Checkout</h2>
@@ -371,6 +446,38 @@ function CartPage() {
         </div>
         <button type="submit">Place cash-on-delivery order</button>
       </form>
+
+      {invoice && (
+        <section className="panel invoice-card">
+          <div className="invoice-head">
+            <div>
+              <span className="eyebrow">Invoice</span>
+              <h2>{invoice.invoiceNumber}</h2>
+            </div>
+            <div className="invoice-badge">Cash on delivery</div>
+          </div>
+          <div className="invoice-grid">
+            <div>
+              <p><strong>Customer:</strong> {invoice.shippingName}</p>
+              <p><strong>Phone:</strong> {invoice.shippingPhone}</p>
+              <p><strong>Address:</strong> {invoice.shippingAddress}</p>
+            </div>
+            <div>
+              <p><strong>Payment:</strong> {invoice.paymentMethod}</p>
+              <p><strong>Total:</strong> ${invoice.totalAmount.toFixed(2)}</p>
+              <p><strong>Status:</strong> pending</p>
+            </div>
+          </div>
+          <div className="invoice-items">
+            {invoice.items.map((item) => (
+              <div key={item.id} className="invoice-line">
+                <span>{item.title} x {item.quantity}</span>
+                <span>${item.lineTotal.toFixed(2)}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

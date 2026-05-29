@@ -29,6 +29,7 @@ function LoginPanel({ onLogin }) {
       <span className="eyebrow">Admin access</span>
       <h1>Book Manager</h1>
       <p className="muted">Sign in with the fixed admin account to manage the catalog.</p>
+      <p className="muted">If you enter an email anywhere else in the app, use a valid format like <strong>user@gmail.com</strong>.</p>
       {error && <p className="error">{error}</p>}
       <div className="form-stack">
         <div className="field-group">

@@ -32,6 +32,7 @@ export async function createOrder(req, res) {
     );
 
     const order = orderResult.rows[0];
+    const invoiceNumber = `INV-${String(order.id).padStart(6, '0')}`;
     for (const item of cartResult.rows) {
       await client.query(
         `INSERT INTO order_items (order_id, book_id, title, author, unit_price, quantity)
@@ -43,7 +44,25 @@ export async function createOrder(req, res) {
 
     await client.query('DELETE FROM cart_items WHERE user_id = $1', [req.user.id]);
     await client.query('COMMIT');
-    res.status(201).json({ order: { ...order, totalAmount: Number(order.total_amount) } });
+    res.status(201).json({
+      order: {
+        ...order,
+        invoiceNumber,
+        totalAmount: Number(order.total_amount),
+        paymentMethod: order.payment_method,
+        shippingName,
+        shippingPhone,
+        shippingAddress,
+        items: cartResult.rows.map((item) => ({
+          id: item.book_id,
+          title: item.title,
+          author: item.author,
+          unitPrice: Number(item.price),
+          quantity: item.quantity,
+          lineTotal: Number(item.price) * item.quantity
+        }))
+      }
+    });
   } catch (error) {
     await client.query('ROLLBACK');
     throw error;

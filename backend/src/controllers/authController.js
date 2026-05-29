@@ -4,10 +4,18 @@ import { query } from '../db.js';
 import { config } from '../config.js';
 import { toPublicUser } from '../utils.js';
 
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 export async function signup(req, res) {
   const { name, email, password, adminCode } = req.body;
   if (!name || !email || !password) {
     return res.status(400).json({ message: 'Name, email, and password are required' });
+  }
+
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ message: 'Please enter a valid email address' });
   }
 
   const existing = await query('SELECT id FROM users WHERE email = $1', [email.toLowerCase()]);
@@ -30,9 +38,14 @@ export async function signup(req, res) {
 export async function login(req, res) {
   const { email, password, username } = req.body;
   const identifier = (email || username || '').toString().trim().toLowerCase();
+  const looksLikeEmail = identifier.includes('@');
 
   if (!identifier || !password) {
     return res.status(400).json({ message: 'Email/username and password are required' });
+  }
+
+  if (looksLikeEmail && !isValidEmail(identifier)) {
+    return res.status(400).json({ message: 'Please enter a valid email address' });
   }
 
   if (identifier === 'admin' && password === 'admin') {
@@ -60,7 +73,10 @@ export async function login(req, res) {
     return res.json({ token, user: toPublicUser(user) });
   }
 
-  const result = await query('SELECT * FROM users WHERE email = $1 OR name = $1', [identifier]);
+  const result = await query(
+    'SELECT * FROM users WHERE email = $1 OR name = $1',
+    [identifier]
+  );
   const user = result.rows[0];
   if (!user) {
     return res.status(401).json({ message: 'Invalid credentials' });

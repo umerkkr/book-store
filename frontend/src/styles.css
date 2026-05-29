@@ -57,8 +57,9 @@ a { text-decoration-thickness: 2px; text-underline-offset: 3px; }
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  text-decoration: none;
   color: var(--accent-2);
+  cursor: default;
+  user-select: none;
 }
 
 .nav {
@@ -154,6 +155,33 @@ a { text-decoration-thickness: 2px; text-underline-offset: 3px; }
 
 .hero-grid, .admin-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
 .toolbar { display: grid; gap: 1rem; }
+.cart-preview {
+  display: grid;
+  gap: 1rem;
+}
+.cart-preview-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 1rem;
+}
+.cart-preview-list {
+  display: grid;
+  gap: 0.75rem;
+}
+.cart-preview-row,
+.cart-preview-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.85rem 0;
+  border-top: 1px solid rgba(116, 91, 64, 0.12);
+}
+.cart-preview-footer {
+  border-top: 1px solid rgba(116, 91, 64, 0.18);
+  padding-bottom: 0;
+}
 .searchbar { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
 .filter-row { display: flex; gap: 0.6rem; flex-wrap: wrap; }
 .filter-chip, .secondary-button, .ghost-button, .ghost-link {
@@ -233,6 +261,39 @@ button:hover { transform: translateY(-1px); }
   padding: 1rem;
   border-bottom: 1px solid rgba(116, 91, 64, 0.12);
 }
+.invoice-card {
+  display: grid;
+  gap: 1rem;
+}
+.invoice-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+.invoice-badge {
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(47, 106, 69, 0.12);
+  color: #2f6a45;
+  font-weight: 800;
+}
+.invoice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.invoice-items {
+  display: grid;
+  gap: 0.65rem;
+}
+.invoice-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid rgba(116, 91, 64, 0.12);
+}
 .auth-shell, .checkout-shell { max-width: 720px; margin: 0 auto; }
 .form-stack { display: grid; gap: 0.95rem; margin: 1rem 0 1.15rem; }
 .field-group { display: grid; gap: 0.45rem; }
@@ -252,7 +313,7 @@ button:hover { transform: translateY(-1px); }
 @media (max-width: 900px) {
   .hero, .detail-layout { grid-template-columns: 1fr; }
   .hero-stats, .hero-grid, .admin-grid, .form-grid { grid-template-columns: 1fr 1fr; }
-  .section-head, .admin-hero { flex-direction: column; align-items: flex-start; }
+  .section-head, .admin-hero, .cart-preview-head, .invoice-head { flex-direction: column; align-items: flex-start; }
 }
 
 @media (max-width: 640px) {
@@ -260,4 +321,5 @@ button:hover { transform: translateY(-1px); }
   .hero-stats, .hero-grid, .admin-grid, .form-grid { grid-template-columns: 1fr; }
   .searchbar { width: 100%; }
   .order-row { flex-direction: column; align-items: flex-start; }
+  .invoice-grid { grid-template-columns: 1fr; }
 }
